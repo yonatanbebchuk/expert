@@ -1,22 +1,30 @@
 {
   "expo": {
-    "name": "expert",
-    "slug": "expert",
+    "name": "MathMaster",
+    "slug": "mathmaster",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "expert",
+    "scheme": "mathmaster",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "Practice mental arithmetic with multiplication games",
+    "privacy": "public",
+    "platforms": ["ios", "android", "web"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mathmaster.app",
+      "buildNumber": "1.0.0",
+      "requireFullScreen": false
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.mathmaster.app",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +45,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "mathmaster-project"
+      }
     }
   }
 }
