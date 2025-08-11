@@ -13,9 +13,9 @@ export interface GameState {
   correctAnswers: number;
 }
 
-export function generateProblem(): Problem {
-  const num1 = Math.floor(Math.random() * 90) + 10; // 10-99 (2-digit)
-  const num2 = Math.floor(Math.random() * 9) + 2;   // 2-9 (1-digit, avoid 0,1)
+export function generateProblem(firstDigits = 2, secondDigits = 1): Problem {
+  const num1 = generateNumber(firstDigits);
+  const num2 = generateNumber(secondDigits);
   
   return {
     num1,
@@ -25,13 +25,28 @@ export function generateProblem(): Problem {
   };
 }
 
+function generateNumber(digits: number): number {
+  switch (digits) {
+    case 1:
+      return Math.floor(Math.random() * 8) + 2; // 2-9 (avoid 0,1)
+    case 2:
+      return Math.floor(Math.random() * 90) + 10; // 10-99
+    case 3:
+      return Math.floor(Math.random() * 900) + 100; // 100-999
+    default:
+      return Math.floor(Math.random() * 90) + 10; // Default to 2-digit
+  }
+}
+
 export function checkAnswer(userAnswer: number, correctAnswer: number): boolean {
   return userAnswer === correctAnswer;
 }
 
 export function updateGameState(
   currentState: GameState, 
-  isCorrect: boolean
+  isCorrect: boolean,
+  firstDigits = 2,
+  secondDigits = 1
 ): GameState {
   return {
     ...currentState,
@@ -39,7 +54,7 @@ export function updateGameState(
     streak: isCorrect ? currentState.streak + 1 : 0,
     totalProblems: currentState.totalProblems + 1,
     correctAnswers: currentState.correctAnswers + (isCorrect ? 1 : 0),
-    currentProblem: generateProblem()
+    currentProblem: generateProblem(firstDigits, secondDigits)
   };
 }
 

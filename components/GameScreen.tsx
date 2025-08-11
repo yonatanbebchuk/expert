@@ -1,25 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { generateProblem, checkAnswer, updateGameState, GameState } from '../utils/gameLogic';
+import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { generalStyles } from '../styles/general';
+import { checkAnswer, GameState, generateProblem, updateGameState } from '../utils/gameLogic';
+import { GameSettings, loadSettings, DEFAULT_SETTINGS } from '../utils/settings';
 import NumberPad from './NumberPad';
 import ScoreDisplay from './ScoreDisplay';
 
 export default function GameScreen() {
+  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   const [gameState, setGameState] = useState<GameState>({
-    currentProblem: generateProblem(),
+    currentProblem: generateProblem(DEFAULT_SETTINGS.firstNumberDigits, DEFAULT_SETTINGS.secondNumberDigits),
     score: 0,
     streak: 0,
     totalProblems: 0,
     correctAnswers: 0,
   });
-  
+
   const [currentInput, setCurrentInput] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [feedbackOpacity] = useState(new Animated.Value(0));
 
+  useEffect(() => {
+    loadGameSettings();
+  }, []);
+
+  // Reload settings when the screen comes into focus (when user switches from Settings tab)
+  useFocusEffect(
+    React.useCallback(() => {
+      loadGameSettings();
+    }, [])
+  );
+
+  const loadGameSettings = async () => {
+    try {
+      const loadedSettings = await loadSettings();
+      setSettings(loadedSettings);
+      
+      // Update current problem with new settings
+      setGameState(prevState => ({
+        ...prevState,
+        currentProblem: generateProblem(loadedSettings.firstNumberDigits, loadedSettings.secondNumberDigits)
+      }));
+    } catch (error) {
+      console.log('Failed to load settings:', error);
+    }
+  };
+
   const showFeedback = (message: string, isCorrect: boolean) => {
     setFeedback(message);
-    
+
     Animated.sequence([
       Animated.timing(feedbackOpacity, {
         toValue: 1,
@@ -49,24 +79,29 @@ export default function GameScreen() {
 
   const handleSubmit = () => {
     if (currentInput === '') return;
-    
+
     const userAnswer = parseInt(currentInput);
     const isCorrect = checkAnswer(userAnswer, gameState.currentProblem.answer);
-    
-    setGameState(prevState => updateGameState(prevState, isCorrect));
-    
+
+    setGameState(prevState => updateGameState(
+      prevState, 
+      isCorrect, 
+      settings.firstNumberDigits, 
+      settings.secondNumberDigits
+    ));
+
     showFeedback(
       isCorrect ? '🎉 Correct!' : `❌ Wrong! ${gameState.currentProblem.answer}`,
       isCorrect
     );
-    
+
     setCurrentInput('');
   };
 
   return (
-    <View style={styles.container}>
+    <View style={generalStyles.container}>
       <ScoreDisplay gameState={gameState} />
-      
+
       <View style={styles.problemContainer}>
         <Text style={styles.problemText}>
           {gameState.currentProblem.num1} {gameState.currentProblem.operation} {gameState.currentProblem.num2} = ?
@@ -92,15 +127,6 @@ export default function GameScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
   problemContainer: {
     backgroundColor: 'white',
     borderRadius: 20,
